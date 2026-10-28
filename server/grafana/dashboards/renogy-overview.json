@@ -7,27 +7,38 @@
   "panels": [
     {
       "type": "stat",
-      "title": "Battery SOC",
+      "title": "SOC baterie 1 (BT-2)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
       "gridPos": {
         "h": 5,
         "w": 6,
         "x": 0,
         "y": 0
       },
-      "targets": [
-        {
-          "query": "from(bucket: \"telemetry\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\") |> last()",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "renogy-influx"
-          }
-        }
-      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "displayName": "Baterie 1",
           "thresholds": {
+            "mode": "absolute",
             "steps": [
               {
                 "color": "red",
@@ -38,180 +49,18 @@
                 "value": 20
               },
               {
-                "color": "green",
+                "color": "yellow",
                 "value": 50
-              }
-            ]
-          },
-          "noValue": "no data"
-        }
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "renogy-influx"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "SOC history",
-      "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 0
-      },
-      "targets": [
-        {
-          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\")",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "renogy-influx"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100
-        }
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "renogy-influx"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Charge / discharge power",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "targets": [
-        {
-          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"charge_power_w\" or r._field == \"battery_power_w\"))",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "renogy-influx"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "watt"
-        }
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "renogy-influx"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Battery voltage / current",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "targets": [
-        {
-          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "renogy-influx"
-          }
-        }
-      ],
-      "datasource": {
-        "type": "influxdb",
-        "uid": "renogy-influx"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Production (PV / alternator)",
-      "datasource": {
-        "type": "influxdb",
-        "uid": "renogy-influx"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "renogy-influx"
-          },
-          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"pv_power_w\" or r._field == \"alternator_power_w\"))"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "watt"
-        }
-      }
-    },
-    {
-      "type": "bargauge",
-      "title": "Surse de incarcare (A)",
-      "datasource": {
-        "type": "influxdb",
-        "uid": "renogy-influx"
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 24
-      },
-      "options": {
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "showUnfilled": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "amp",
-          "min": 0,
-          "decimals": 2,
-          "thresholds": {
-            "steps": [
+              },
               {
                 "color": "green",
-                "value": null
+                "value": 80
               }
             ]
-          }
-        }
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -220,22 +69,90 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and (r._field == \"solar_current_a\" or r._field == \"alternator_current_a\" or r._field == \"ac_charger_current_a\"))\n  |> last()"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\" and r.device_id == \"battery_bt2\")\n  |> last()"
         }
       ]
     },
     {
       "type": "stat",
-      "title": "Consum acum (A)",
+      "title": "SOC baterie 2 (nativ\u0103)",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
       },
       "gridPos": {
-        "h": 7,
-        "w": 4,
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "displayName": "Baterie 2",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -6h)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\" and r.device_id == \"battery_native\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Curent net baterie",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
         "x": 12,
-        "y": 24
+        "y": 0
       },
       "options": {
         "reduceOptions": {
@@ -246,14 +163,79 @@
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "area"
+        "graphMode": "area",
+        "textMode": "value_and_name"
       },
       "fieldConfig": {
         "defaults": {
           "unit": "amp",
           "decimals": 2,
+          "displayName": "\u00cencarc\u0103 (+) / Descarc\u0103 (\u2212)",
           "noValue": "0",
           "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "text",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Consum acum",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "decimals": 2,
+          "displayName": "Consum",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
             "steps": [
               {
                 "color": "green",
@@ -269,7 +251,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -283,17 +266,135 @@
       ]
     },
     {
-      "type": "stat",
-      "title": "Curent net baterie (A)",
+      "type": "bargauge",
+      "title": "De unde se \u00eencarc\u0103 acum",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
       },
       "gridPos": {
         "h": 7,
-        "w": 4,
-        "x": 16,
-        "y": 24
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "decimals": 2,
+          "min": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Priz\u0103"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Solar"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alternator"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Priz\u0103\")"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"solar_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Solar\")"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"alternator_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Alternator\")"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Tensiune baterie",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 5
       },
       "options": {
         "reduceOptions": {
@@ -304,14 +405,17 @@
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "area"
+        "graphMode": "area",
+        "textMode": "value_and_name"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "amp",
+          "unit": "volt",
           "decimals": 2,
-          "noValue": "0"
-        }
+          "displayName": "Baterie",
+          "noValue": "\u2014"
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -320,13 +424,58 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> last()"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -6h)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_voltage_v\" and r.device_id == \"battery_native\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Produc\u021bie solar\u0103 acum",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "displayName": "Panouri",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"pv_power_w\")\n  |> last()"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Sursa incarcarii in timp (A)",
+      "title": "SOC \u00een timp",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -335,19 +484,32 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 12
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "min"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "amp",
-          "custom": {
-            "drawStyle": "bars",
-            "stacking": {
-              "mode": "normal"
-            },
-            "fillOpacity": 70
-          }
-        }
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "noValue": "\u2014"
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -356,13 +518,13 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and (r._field == \"solar_current_a\" or r._field == \"alternator_current_a\" or r._field == \"ac_charger_current_a\"))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Curent net baterie / consum (A)",
+      "title": "Sursa \u00eenc\u0103rc\u0103rii \u00een timp",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -371,12 +533,84 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 12
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "amp"
-        }
+          "unit": "amp",
+          "min": 0,
+          "decimals": 2,
+          "custom": {
+            "drawStyle": "bars",
+            "stacking": {
+              "mode": "normal"
+            },
+            "fillOpacity": 75,
+            "lineWidth": 1
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Priz\u0103"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Solar"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alternator"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -385,23 +619,349 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and (r._field == \"battery_net_current_a\" or r._field == \"consumption_current_a\"))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> set(key: \"_field\", value: \"Priz\u0103\")"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"solar_current_a\")\n  |> set(key: \"_field\", value: \"Solar\")"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"alternator_current_a\")\n  |> set(key: \"_field\", value: \"Alternator\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Curent net baterie \u0219i consum",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "decimals": 2,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00cenc\u0103rcare net\u0103"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Consum"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> set(key: \"_field\", value: \"\u00cenc\u0103rcare net\u0103\")"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"consumption_current_a\")\n  |> set(key: \"_field\", value: \"Consum\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Tensiune \u0219i curent baterii",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Tensiune.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "volt"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Curent.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "amp"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\") + (if r._field == \"battery_voltage_v\" then \" \u00b7 Tensiune\" else \" \u00b7 Curent\")}))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Produc\u021bie solar\u0103 \u0219i alternator",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "showPoints": "never"
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Panouri solare"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alternator"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"pv_power_w\")\n  |> set(key: \"_field\", value: \"Panouri solare\")"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"alternator_power_w\")\n  |> set(key: \"_field\", value: \"Alternator\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Putere \u00eenc\u0103rcare / desc\u0103rcare",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "noValue": "\u2014"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_power_w\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))"
         }
       ]
     }
   ],
+  "refresh": "1m",
   "schemaVersion": 39,
   "tags": [
-    "renogy"
+    "renogy",
+    "energie"
   ],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-6h",
     "to": "now"
   },
-  "title": "Renogy Overview",
+  "timezone": "browser",
+  "title": "Renogy \u2014 Energie",
   "uid": "renogy-overview",
   "version": 1
 }

@@ -12,7 +12,9 @@ The hardware has no shunt, so the source split is derived:
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
+import json
+from dataclasses import asdict, dataclass, replace
+from pathlib import Path
 
 from renogy_monitor.ble.session import BleSession
 from renogy_monitor.config import AppConfig, DeviceConfig
@@ -22,6 +24,34 @@ from renogy_monitor.telemetry import Telemetry
 
 BATTERY_KINDS = {"battery_bt2", "battery_native"}
 SOURCE_EPSILON_A = 0.05
+
+# Last good sample per device, used to publish a `stale` value instead of a
+# hole when a BLE module sleeps or temporarily stops advertising.
+_last_good: dict[str, Telemetry] = {}
+_LAST_GOOD_PATH = Path("/var/lib/renogy-monitor/last_good.json")
+
+
+def _load_last_good() -> None:
+    try:
+        raw = json.loads(_LAST_GOOD_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    for alias, payload in raw.items():
+        try:
+            _last_good[alias] = Telemetry(**payload)
+        except TypeError:
+            continue
+
+
+def _save_last_good() -> None:
+    try:
+        _LAST_GOOD_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _LAST_GOOD_PATH.write_text(
+            json.dumps({a: asdict(t) for a, t in _last_good.items()}, default=list),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,13 +141,30 @@ def derive_system_telemetry(site_id: str, items: list[Telemetry]) -> Telemetry:
 
 
 async def collect_cycle(transport: object, app: AppConfig) -> CycleResult:
+    if not _last_good:
+        _load_last_good()
     values: list[Telemetry] = []
     errors: list[str] = []
     for device in app.devices:
-        try:
-            values.append(await collect_device(transport, app, device))
-        except Exception as exc:
-            errors.append(f"{device.alias}: {exc}")
+        sample: Telemetry | None = None
+        last_error: Exception | None = None
+        for attempt in range(2):
+            try:
+                sample = await collect_device(transport, app, device)
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt == 0:
+                    await asyncio.sleep(2)
+        if sample is not None:
+            _last_good[device.alias] = sample
+            _save_last_good()
+            values.append(sample)
+        else:
+            errors.append(f"{device.alias}: {last_error}")
+            cached = _last_good.get(device.alias)
+            if cached is not None:
+                values.append(replace(cached, ts=Telemetry.now("", "", "").ts, stale=True))
         await asyncio.sleep(0)
     if values and app.devices:
         values.append(derive_system_telemetry(app.site_id, values))
