@@ -69,6 +69,27 @@ services:
     volumes:
       - ./alertbridge/bridge.py:/app/bridge.py:ro
 
+  telegram:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    command: python /app/bot.py
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?set INFLUX_TOKEN}
+      INFLUX_ORG: ${INFLUX_ORG:-renogy}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-telemetry}
+      TZ_NAME: ${TZ_NAME:-Europe/Bucharest}
+      SOC_ALERT_BELOW: ${SOC_ALERT_BELOW:-20}
+      REPORT_HOUR: ${REPORT_HOUR:-9}
+      REPORT_MINUTE: ${REPORT_MINUTE:-0}
+      STATE_DIR: /data
+    volumes:
+      - ./telegram/bot.py:/app/bot.py:ro
+      - telegram_state:/data
+
   grafana:
     image: grafana/grafana:12.2.0
     restart: unless-stopped
@@ -99,5 +120,6 @@ volumes:
   influxdb_data:
   influxdb_config:
   grafana_data:
+  telegram_state:
   ntfy_cache:
   ntfy_data:
