@@ -1,0 +1,15 @@
+apiVersion: 1
+datasources:
+  - name: Renogy InfluxDB
+    uid: renogy-influx
+    type: influxdb
+    isDefault: true
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: ${INFLUX_BUCKET}
+      tlsSkipVerify: false
+    secureJsonData:
+      token: ${INFLUX_TOKEN}

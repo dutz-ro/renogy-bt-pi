@@ -12,6 +12,7 @@ sudo hciconfig hci0 noscan || true
 
 echo "==> Install package to ${PREFIX}"
 mkdir -p "$PREFIX"
+sudo install -d -o pi -g pi /var/lib/renogy-monitor
 rsync -a --delete \
   --exclude '.venv' --exclude '__pycache__' --exclude '.pytest_cache' \
   "$ROOT/" "$PREFIX/"

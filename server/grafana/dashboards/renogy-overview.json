@@ -1,0 +1,191 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Battery SOC",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"telemetry\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\") |> last()",
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "green",
+                "value": 50
+              }
+            ]
+          },
+          "noValue": "no data"
+        }
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "SOC history",
+      "gridPos": {
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\")",
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Charge / discharge power",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"charge_power_w\" or r._field == \"battery_power_w\"))",
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt"
+        }
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Battery voltage / current",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))",
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          }
+        }
+      ],
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Production (PV / alternator)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"pv_power_w\" or r._field == \"alternator_power_w\"))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt"
+        }
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "renogy"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "title": "Renogy Overview",
+  "uid": "renogy-overview",
+  "version": 1
+}

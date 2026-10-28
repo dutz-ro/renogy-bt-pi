@@ -1,4 +1,4 @@
-"""renogyctl — Phase 0 recon tools: scan, probe, sweep."""
+"""renogyctl — BLE recon and sequential telemetry collector."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import asyncio
 import json
 import re
 import sys
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TextIO
@@ -26,6 +27,10 @@ from renogy_monitor.ble.session import BleSession
 from renogy_monitor.ble.transport import BleAdvertisement, BleError, BleTransport, GattService
 from renogy_monitor.logging_setup import get_logger, setup_logging
 from renogy_monitor.modbus.frames import ModbusError, parse_response
+from renogy_monitor.config import load_config
+from renogy_monitor.buffer import TelemetryBuffer
+from renogy_monitor.cycle import collect_cycle
+from renogy_monitor.uplink.mqtt import MqttConfig, MqttUplink
 
 log = get_logger(__name__)
 
@@ -462,6 +467,11 @@ def _build_parser() -> argparse.ArgumentParser:
     sweep.add_argument("--write-char", default=WRITE_CHAR_UUID)
     sweep.add_argument("--notify-char", default=NOTIFY_CHAR_UUID)
 
+    run = sub.add_parser("run", help="Poll configured devices and publish telemetry")
+    run.add_argument("--config", type=Path, required=True)
+    run.add_argument("--once", action="store_true")
+    run.add_argument("--buffer", type=Path, default=Path("/var/lib/renogy-monitor/telemetry.db"))
+
     return p
 
 
@@ -517,6 +527,24 @@ async def _async_main(argv: list[str] | None = None) -> int:
             alias=args.alias,
             out=sys.stdout,
         )
+    if args.command == "run":
+        app = load_config(args.config)
+        buffer = TelemetryBuffer(args.buffer)
+        uplink = MqttUplink(MqttConfig(**asdict(app.mqtt)), buffer) if app.mqtt else None
+        while True:
+            result = await collect_cycle(transport, app)
+            for item in result.telemetry:
+                buffer.add(item)
+                print(item.to_json(), flush=True)
+            for error in result.errors:
+                log.error("device_collection_failed", error=error)
+            if uplink is not None:
+                uplink.flush()
+            if args.once:
+                break
+            await asyncio.sleep(max(1.0, app.cycle_budget_s))
+        buffer.close()
+        return 0
     parser.error(f"unknown command {args.command}")
     return 2
 
