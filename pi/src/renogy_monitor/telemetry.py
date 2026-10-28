@@ -21,8 +21,18 @@ class Telemetry:
     battery_power_w: float | None = None
     charge_current_a: float | None = None
     charge_power_w: float | None = None
+    alternator_current_a: float | None = None
     alternator_power_w: float | None = None
+    pv_current_a: float | None = None
     pv_power_w: float | None = None
+    # Derived system view (no shunt: attribution is inferred)
+    battery_net_current_a: float | None = None
+    solar_current_a: float | None = None
+    alternator_current_a: float | None = None
+    ac_charger_current_a: float | None = None
+    charge_total_current_a: float | None = None
+    consumption_current_a: float | None = None
+    charge_sources: str | None = None
     load_current_a: float | None = None
     load_power_w: float | None = None
     controller_temperature_c: float | None = None
