@@ -1,0 +1,101 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Renogy battery
+    folder: Renogy
+    interval: 1m
+    rules:
+      - uid: renogy-low-soc
+        title: Renogy battery SOC low
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: renogy-influx
+            model:
+              refId: A
+              rawQuery: true
+              query: |
+                from(bucket: "telemetry")
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "renogy" and r._field == "battery_soc_pct")
+                  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+                  |> group(columns: ["device_id"])
+                  |> yield(name: "soc")
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              mode: dropNN
+              settings: {mode: dropNN}
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: {type: lt, params: [20]}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {type: last, params: []}
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Bateria a scăzut sub 20% SOC
+          description: SOC-ul măsurat este sub pragul sigur.
+        labels:
+          severity: warning
+          source: renogy
+      - uid: renogy-stale
+        title: Renogy telemetry stale
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: renogy-influx
+            model:
+              refId: A
+              rawQuery: true
+              query: |
+                from(bucket: "telemetry")
+                  |> range(start: -15m)
+                  |> filter(fn: (r) => r._measurement == "renogy" and r._field == "battery_soc_pct")
+                  |> group(columns: ["_measurement"])
+                  |> count()
+                  |> yield(name: "points")
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              mode: dropNN
+              settings: {mode: dropNN}
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: {type: lt, params: [1]}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {type: last, params: []}
+                  type: query
+              refId: C
+        noDataState: Alerting
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Telemetria Renogy s-a oprit
+          description: Nu a sosit nicio măsurătoare în ultimele 15 minute.
+        labels:
+          severity: critical
+          source: renogy

@@ -2,17 +2,26 @@ site_id: rulota
 cycle_budget_s: 60
 log_level: INFO
 
+# Fill with the VPS MQTT listener once the server stack is deployed.
+# mqtt:
+#   host: mqtt.example.com
+#   port: 8883
+#   username: renogy
+#   password: replace-me
+#   ca_file: /etc/ssl/certs/ca-certificates.crt
+#   client_id: renogy-pi
+
 # Fill after Phase 0 recon (scan + sweep)
 devices:
   - alias: dcc50s
-    mac: "00:00:00:00:00:00"
+    mac: "60:98:66:FA:EE:CA"
     kind: dc_charger
-    device_id: 16
+    device_id: 96
   - alias: battery_bt2
-    mac: "00:00:00:00:00:00"
+    mac: "CC:45:A5:83:BD:F3"
     kind: battery_bt2
-    device_id: 33
+    device_id: 48
   - alias: battery_native
-    mac: "00:00:00:00:00:00"
+    mac: "4C:E1:74:52:1C:0E"
     kind: battery_native
-    device_id: null  # discover via sweep — may use different protocol
+    device_id: 255

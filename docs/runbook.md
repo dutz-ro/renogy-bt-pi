@@ -31,3 +31,40 @@ sudo systemctl stop renogy-monitor   # until pause exists
 ```bash
 journalctl -u renogy-monitor -f
 ```
+
+## Server stack on the VPS (Tailscale-only)
+
+Everything is private: MQTT binds to the tailnet IP, Grafana binds to loopback
+and is published with `tailscale serve` (valid TLS, tailnet only).
+
+| Service | Address |
+|---|---|
+| Grafana | `https://blow-global.tail3d9980.ts.net:10451` |
+| ntfy (push) | `https://blow-global.tail3d9980.ts.net:10452/<NTFY_TOPIC>` |
+| MQTT | `100.83.4.23:1883` (user/password from `/opt/renogy/.env`) |
+
+Deploy:
+
+```bash
+rsync -az server/ claude-server:/opt/renogy/
+ssh claude-server 'cd /opt/renogy && docker compose up -d'
+```
+
+Tailscale Serve mapping:
+
+```bash
+ssh claude-server 'tailscale serve --bg --https=10451 http://127.0.0.1:3300'
+ssh claude-server 'tailscale serve --bg --https=10452 http://127.0.0.1:2586'
+```
+
+Phone push: install the ntfy app, subscribe to the ntfy URL above.
+
+## Pi: collector service
+
+```bash
+systemctl status renogy-monitor
+journalctl -u renogy-monitor -f
+renogyctl run --config /home/pi/renogy-monitor/config.yaml --once
+```
+
+Tailscale on the Pi is required only for reaching the private MQTT listener.

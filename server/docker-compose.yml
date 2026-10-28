@@ -1,2 +1,103 @@
-# Phase 4 placeholder — mosquitto + telegraf + influxdb2 + grafana + caddy
-services: {}
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      # Reachable only through Tailscale, never on the public interface.
+      - "${TAILSCALE_IP:?set TAILSCALE_IP}:1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+
+  influxdb:
+    image: influxdb:2.7
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USERNAME:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:?set INFLUX_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-renogy}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-telemetry}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:?set INFLUX_TOKEN}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUX_RETENTION:-52w}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+
+  telegraf:
+    image: telegraf:1.36
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+    environment:
+      MQTT_USER: ${MQTT_USER:-renogy}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?set MQTT_PASSWORD}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?set INFLUX_TOKEN}
+      INFLUX_ORG: ${INFLUX_ORG:-renogy}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-telemetry}
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    restart: unless-stopped
+    command: serve
+    environment:
+      NTFY_BASE_URL: ${NTFY_BASE_URL:?set NTFY_BASE_URL}
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_CACHE_FILE: /var/cache/ntfy/cache.db
+      NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+      NTFY_ATTACHMENT_CACHE_DIR: /var/cache/ntfy/attachments
+    ports:
+      - "127.0.0.1:${NTFY_PORT:-2586}:80"
+    volumes:
+      - ntfy_cache:/var/cache/ntfy
+      - ntfy_data:/var/lib/ntfy
+
+  alertbridge:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    depends_on:
+      - ntfy
+    command: python /app/bridge.py
+    environment:
+      NTFY_URL: http://ntfy:80
+      NTFY_TOPIC: ${NTFY_TOPIC:?set NTFY_TOPIC}
+    volumes:
+      - ./alertbridge/bridge.py:/app/bridge.py:ro
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    ports:
+      # Local only; published through `tailscale serve` with a valid TLS cert.
+      - "127.0.0.1:${GRAFANA_PORT:-3300}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3300}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      INFLUX_ORG: ${INFLUX_ORG:-renogy}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-telemetry}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?set INFLUX_TOKEN}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  influxdb_data:
+  influxdb_config:
+  grafana_data:
+  ntfy_cache:
+  ntfy_data:

@@ -146,7 +146,10 @@ class BleakTransport(BleTransport):
             if result is not None:
                 await result
 
-        await client.start_notify(char_uuid, _handler)
+        # Some native Renogy batteries expose the same UUID more than once.
+        # Bleak cannot resolve a duplicated UUID string, so select the
+        # characteristic object by its notify property (and therefore handle).
+        await client.start_notify(self._resolve_characteristic(char_uuid, "notify"), _handler)
 
     async def stop_notify(self, char_uuid: str) -> None:
         client = self._client
@@ -154,7 +157,7 @@ class BleakTransport(BleTransport):
         if client is None or not client.is_connected:
             return
         try:
-            await client.stop_notify(char_uuid)
+            await client.stop_notify(self._resolve_characteristic(char_uuid, "notify"))
         except Exception as exc:
             log.debug("stop_notify_error", error=str(exc))
 
@@ -166,9 +169,35 @@ class BleakTransport(BleTransport):
         response: bool = False,
     ) -> None:
         client = self._require_client()
-        await client.write_gatt_char(char_uuid, bytearray(data), response=response)
+        await client.write_gatt_char(
+            self._resolve_characteristic(char_uuid, "write"), bytearray(data), response=response
+        )
 
     async def read(self, char_uuid: str) -> bytes:
         client = self._require_client()
-        data = await client.read_gatt_char(char_uuid)
+        data = await client.read_gatt_char(self._resolve_characteristic(char_uuid, "read"))
         return bytes(data)
+
+    def _resolve_characteristic(self, uuid: str, preferred_property: str) -> Any:
+        """Resolve a UUID to a unique characteristic object.
+
+        Bleak's UUID lookup raises when a peripheral has duplicate UUIDs.
+        Renogy's native battery firmware does this, so prefer a characteristic
+        that supports the operation and fall back to the first UUID match.
+        """
+        client = self._require_client()
+        wanted = uuid.lower()
+        matches = [
+            char
+            for service in client.services
+            for char in service.characteristics
+            if str(char.uuid).lower() == wanted
+        ]
+        if not matches:
+            return uuid
+        if len(matches) == 1:
+            return matches[0]
+        for char in matches:
+            if preferred_property in set(char.properties):
+                return char
+        return matches[0]

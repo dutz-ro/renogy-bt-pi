@@ -25,6 +25,17 @@ class AppConfig:
     cycle_budget_s: float = 60.0
     devices: list[DeviceConfig] = field(default_factory=list)
     log_level: str = "INFO"
+    mqtt: "MqttConfig | None" = None
+
+
+@dataclass
+class MqttConfig:
+    host: str
+    port: int = 8883
+    username: str | None = None
+    password: str | None = None
+    ca_file: str | None = None
+    client_id: str = "renogy-pi"
 
 
 def load_config(path: Path | str) -> AppConfig:
@@ -51,6 +62,20 @@ def load_config(path: Path | str) -> AppConfig:
         cycle_budget_s=float(raw.get("cycle_budget_s", 60.0)),
         devices=devices,
         log_level=str(raw.get("log_level", "INFO")),
+        mqtt=_mqtt_config(raw.get("mqtt")),
+    )
+
+
+def _mqtt_config(value: Any) -> MqttConfig | None:
+    if not isinstance(value, dict) or not value.get("host"):
+        return None
+    return MqttConfig(
+        host=str(value["host"]),
+        port=int(value.get("port", 8883)),
+        username=_opt_str(value.get("username")),
+        password=_opt_str(value.get("password")),
+        ca_file=_opt_str(value.get("ca_file")),
+        client_id=str(value.get("client_id", "renogy-pi")),
     )
 
 
