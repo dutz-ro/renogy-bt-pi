@@ -172,6 +172,222 @@
           "unit": "watt"
         }
       }
+    },
+    {
+      "type": "bargauge",
+      "title": "Surse de incarcare (A)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "min": 0,
+          "decimals": 2,
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and (r._field == \"solar_current_a\" or r._field == \"alternator_current_a\" or r._field == \"ac_charger_current_a\"))\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Consum acum (A)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 12,
+        "y": 24
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "decimals": 2,
+          "noValue": "0",
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"consumption_current_a\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Curent net baterie (A)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 16,
+        "y": 24
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "decimals": 2,
+          "noValue": "0"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Sursa incarcarii in timp (A)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp",
+          "custom": {
+            "drawStyle": "bars",
+            "stacking": {
+              "mode": "normal"
+            },
+            "fillOpacity": 70
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and (r._field == \"solar_current_a\" or r._field == \"alternator_current_a\" or r._field == \"ac_charger_current_a\"))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Curent net baterie / consum (A)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and (r._field == \"battery_net_current_a\" or r._field == \"consumption_current_a\"))"
+        }
+      ]
     }
   ],
   "schemaVersion": 39,
