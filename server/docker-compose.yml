@@ -1,0 +1,2 @@
+# Phase 4 placeholder — mosquitto + telegraf + influxdb2 + grafana + caddy
+services: {}

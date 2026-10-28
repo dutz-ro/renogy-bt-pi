@@ -1,0 +1,16 @@
+[Unit]
+Description=Renogy BLE monitor (60s sequential poll)
+After=network-online.target bluetooth.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/renogy-monitor
+ExecStart=/home/pi/renogy-monitor/.venv/bin/renogyctl run --config /home/pi/renogy-monitor/config.yaml
+Restart=always
+RestartSec=10
+# WatchdogSec=120  # enable in Phase 6 with sd_notify
+
+[Install]
+WantedBy=multi-user.target
