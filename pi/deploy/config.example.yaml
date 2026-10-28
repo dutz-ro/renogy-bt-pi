@@ -1,0 +1,18 @@
+site_id: rulota
+cycle_budget_s: 60
+log_level: INFO
+
+# Fill after Phase 0 recon (scan + sweep)
+devices:
+  - alias: dcc50s
+    mac: "00:00:00:00:00:00"
+    kind: dc_charger
+    device_id: 16
+  - alias: battery_bt2
+    mac: "00:00:00:00:00:00"
+    kind: battery_bt2
+    device_id: 33
+  - alias: battery_native
+    mac: "00:00:00:00:00:00"
+    kind: battery_native
+    device_id: null  # discover via sweep — may use different protocol
