@@ -68,3 +68,28 @@ renogyctl run --config /home/pi/renogy-monitor/config.yaml --once
 ```
 
 Tailscale on the Pi is required only for reaching the private MQTT listener.
+
+## Telegram bot (VPS)
+
+Runs on the VPS in the `telegram` container, reads InfluxDB directly.
+It does not depend on the Pi except through the telemetry it already sends.
+
+```bash
+ssh claude-server 'cd /opt/renogy && docker compose logs -f telegram'
+ssh claude-server 'cd /opt/renogy && docker compose restart telegram'
+```
+
+Config lives in `/opt/renogy/.env`:
+
+| Variable | Meaning |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | bot token from BotFather |
+| `SOC_ALERT_BELOW` | SOC alarm threshold (default 20) |
+| `ALERT_COOLDOWN_H` | hours between repeated alarms |
+| `REPORT_HOUR` / `REPORT_MINUTE` | daily report time, Europe/Bucharest |
+
+The first chat that sends `/start` is bound and persisted in
+`/data/state.json`; other chats are ignored.
+
+Commands: `/status`, `/baterii`, `/incarcator`, `/energie`, `/azi`,
+`/raport`, `/ajutor`.
