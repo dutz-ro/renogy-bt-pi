@@ -16,6 +16,7 @@ import json
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
+from renogy_monitor.ble.bluez import disconnect_device
 from renogy_monitor.ble.session import BleSession
 from renogy_monitor.config import AppConfig, DeviceConfig
 from renogy_monitor.modbus.frames import parse_response
@@ -69,6 +70,8 @@ async def collect_device(transport: object, app: AppConfig, device: DeviceConfig
         register, words = 5042, 6
     else:
         raise ValueError(f"unsupported device kind: {device.kind}")
+    # A dangling BlueZ session makes the next connect time out silently.
+    await disconnect_device(device.mac)
     async with BleSession(
         transport,
         device.mac,
