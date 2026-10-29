@@ -363,7 +363,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Priz\u0103\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Priz\u0103\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -371,7 +371,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"solar_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Solar\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"solar_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Solar\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "C",
@@ -379,7 +379,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"alternator_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Alternator\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"alternator_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Alternator\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -518,7 +518,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_soc_pct\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -619,7 +619,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> set(key: \"_field\", value: \"Priz\u0103\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> set(key: \"_field\", value: \"Priz\u0103\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -627,7 +627,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"solar_current_a\")\n  |> set(key: \"_field\", value: \"Solar\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"solar_current_a\")\n  |> set(key: \"_field\", value: \"Solar\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "C",
@@ -635,7 +635,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"alternator_current_a\")\n  |> set(key: \"_field\", value: \"Alternator\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"alternator_current_a\")\n  |> set(key: \"_field\", value: \"Alternator\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -717,7 +717,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> set(key: \"_field\", value: \"\u00cenc\u0103rcare net\u0103\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> set(key: \"_field\", value: \"\u00cenc\u0103rcare net\u0103\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -725,7 +725,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"consumption_current_a\")\n  |> set(key: \"_field\", value: \"Consum\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"consumption_current_a\")\n  |> set(key: \"_field\", value: \"Consum\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -800,7 +800,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\") + (if r._field == \"battery_voltage_v\" then \" \u00b7 Tensiune\" else \" \u00b7 Curent\")}))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\") + (if r._field == \"battery_voltage_v\" then \" \u00b7 Tensiune\" else \" \u00b7 Curent\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -883,7 +883,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"pv_power_w\")\n  |> set(key: \"_field\", value: \"Panouri solare\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"pv_power_w\")\n  |> set(key: \"_field\", value: \"Panouri solare\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -891,7 +891,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"alternator_power_w\")\n  |> set(key: \"_field\", value: \"Alternator\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"alternator_power_w\")\n  |> set(key: \"_field\", value: \"Alternator\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -942,7 +942,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_power_w\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_power_w\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -1024,7 +1024,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"controller_temperature_c\" or r._field == \"temperature_min_c\"))\n  |> map(fn: (r) => ({r with _field: (if r._field == \"controller_temperature_c\" then \"Controller\" else if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\")}))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"controller_temperature_c\" or r._field == \"temperature_min_c\"))\n  |> map(fn: (r) => ({r with _field: (if r._field == \"controller_temperature_c\" then \"Controller\" else if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -1075,7 +1075,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"cell_voltage_min_v\" or r._field == \"cell_voltage_max_v\" or r._field == \"cell_voltage_delta_v\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\") + (if r._field == \"cell_voltage_min_v\" then \" \u00b7 minim\" else if r._field == \"cell_voltage_max_v\" then \" \u00b7 maxim\" else \" \u00b7 delta\")}))"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"cell_voltage_min_v\" or r._field == \"cell_voltage_max_v\" or r._field == \"cell_voltage_delta_v\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\") + (if r._field == \"cell_voltage_min_v\" then \" \u00b7 minim\" else if r._field == \"cell_voltage_max_v\" then \" \u00b7 maxim\" else \" \u00b7 delta\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
@@ -1424,7 +1424,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"alternator_voltage_v\")\n  |> set(key: \"_field\", value: \"Baterie starter\")"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"alternator_voltage_v\")\n  |> set(key: \"_field\", value: \"Baterie starter\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     }
