@@ -15,12 +15,19 @@ import asyncio
 import json
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
+from typing import Any
 
 from renogy_monitor.ble.bluez import disconnect_device
 from renogy_monitor.ble.session import BleSession
 from renogy_monitor.config import AppConfig, DeviceConfig
 from renogy_monitor.modbus.frames import parse_response
-from renogy_monitor.modbus.registers import parse_battery_info, parse_dc_charger
+from renogy_monitor.modbus.registers import (
+    heating_state,
+    parse_battery_cells,
+    parse_battery_info,
+    parse_battery_temps,
+    parse_dc_charger,
+)
 from renogy_monitor.telemetry import Telemetry
 
 BATTERY_KINDS = {"battery_bt2", "battery_native"}
@@ -61,16 +68,13 @@ class CycleResult:
     errors: list[str]
 
 
-async def collect_device(transport: object, app: AppConfig, device: DeviceConfig) -> Telemetry:
-    if device.device_id is None:
-        raise ValueError(f"device {device.alias} has no device_id")
-    if device.kind == "dc_charger":
-        register, words = 256, 30
-    elif device.kind in BATTERY_KINDS:
-        register, words = 5042, 6
-    else:
-        raise ValueError(f"unsupported device kind: {device.kind}")
-    # A dangling BlueZ session makes the next connect time out silently.
+async def _read_block(
+    transport: object,
+    device: DeviceConfig,
+    device_id: int,
+    register: int,
+    words: int,
+) -> tuple[int, ...]:
     await disconnect_device(device.mac)
     async with BleSession(
         transport,
@@ -78,28 +82,86 @@ async def collect_device(transport: object, app: AppConfig, device: DeviceConfig
         write_char=device.write_char or "0000ffd1-0000-1000-8000-00805f9b34fb",
         notify_char=device.notify_char or "0000fff1-0000-1000-8000-00805f9b34fb",
     ) as session:
-        raw = await session.modbus_read(device.device_id, register, words, timeout=8)
+        raw = await session.modbus_read(device_id, register, words, timeout=8)
     response = parse_response(raw)
     if response.is_exception:
         raise ValueError(f"{device.alias}: Modbus exception {response.exception_code}")
-    values = (
-        parse_dc_charger(response.registers)
-        if device.kind == "dc_charger"
-        else parse_battery_info(response.registers)
+    return response.registers
+
+
+async def _read_battery(
+    transport: object, device: DeviceConfig, device_id: int
+) -> dict[str, Any]:
+    """One BLE session per battery, three Modbus reads inside it."""
+    await disconnect_device(device.mac)
+    values: dict[str, Any] = {}
+    async with BleSession(
+        transport,
+        device.mac,
+        write_char=device.write_char or "0000ffd1-0000-1000-8000-00805f9b34fb",
+        notify_char=device.notify_char or "0000fff1-0000-1000-8000-00805f9b34fb",
+    ) as session:
+        for register, words, parser in (
+            (5000, 17, parse_battery_cells),
+            (5017, 17, parse_battery_temps),
+            (5042, 6, parse_battery_info),
+        ):
+            raw = await session.modbus_read(device_id, register, words, timeout=8)
+            response = parse_response(raw)
+            if response.is_exception:
+                raise ValueError(
+                    f"{device.alias}: exception {response.exception_code} at {register}"
+                )
+            values.update(parser(response.registers))
+    if values.get("battery_voltage_v") and values.get("battery_current_a") is not None:
+        values["battery_power_w"] = (
+            values["battery_voltage_v"] * values["battery_current_a"]
+        )
+    values["battery_heating"] = heating_state(
+        values.get("temperature_min_c"), values.get("battery_current_a")
     )
+    return values
+
+
+async def collect_device(transport: object, app: AppConfig, device: DeviceConfig) -> Telemetry:
+    if device.device_id is None:
+        raise ValueError(f"device {device.alias} has no device_id")
+
+    values: dict[str, Any]
     if device.kind == "dc_charger":
+        values = parse_dc_charger(
+            await _read_block(transport, device, device.device_id, 256, 30)
+        )
         values["charge_power_w"] = (values.get("alternator_power_w") or 0) + (
             values.get("pv_power_w") or 0
         )
+        values["charging_mode"] = _charging_mode(values)
+    elif device.kind in BATTERY_KINDS:
+        values = await _read_battery(transport, device, device.device_id)
     else:
-        values["battery_power_w"] = values["battery_voltage_v"] * values["battery_current_a"]
+        raise ValueError(f"unsupported device kind: {device.kind}")
+
     return Telemetry.now(
         app.site_id,
         device.alias,
         device.kind,
-        raw_registers=response.registers,
         **{k: v for k, v in values.items() if k in Telemetry.__dataclass_fields__},
     )
+
+
+def _charging_mode(values: dict[str, Any]) -> str:
+    pv = values.get("pv_power_w") or 0
+    alt = values.get("alternator_power_w") or 0
+    current = values.get("charge_current_a") or 0
+    if pv > 1 and alt > 1:
+        return "solar + alternator"
+    if pv > 1:
+        return "solar (MPPT)"
+    if alt > 1:
+        return "alternator"
+    if current > 0.05:
+        return "priză / extern"
+    return "float / repaus"
 
 
 def derive_system_telemetry(site_id: str, items: list[Telemetry]) -> Telemetry:
@@ -112,11 +174,7 @@ def derive_system_telemetry(site_id: str, items: list[Telemetry]) -> Telemetry:
     alternator_a = sum((c.alternator_current_a or 0.0) for c in chargers)
     dc_charger_out_a = sum((c.charge_current_a or 0.0) for c in chargers)
 
-    # What the DC-DC delivers beyond solar/alternator is not possible: it is
-    # their sum. Any surplus net battery charge beyond the DC-DC output can
-    # only come from another charger on the bank (mains charger).
     ac_charger_a = max(0.0, battery_net_a - dc_charger_out_a)
-
     charge_total_a = max(0.0, battery_net_a)
     discharge_a = max(0.0, -battery_net_a)
 

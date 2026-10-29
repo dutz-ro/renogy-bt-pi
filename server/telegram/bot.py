@@ -236,9 +236,11 @@ def status_text() -> str:
         volt = dev.get("battery_voltage_v")
         amp = dev.get("battery_current_a")
         state = "încarcă" if (amp or 0) > 0.05 else ("descarcă" if (amp or 0) < -0.05 else "repaus")
+        temp = dev.get("temperature_min_c")
+        extra = f" · {fmt(temp, 1, '°C')}" if temp is not None else ""
         lines.append(
             f"{label}: <b>{fmt(soc, 1, '%')}</b> · {fmt(volt, 2, 'V')} · "
-            f"{fmt(amp, 2, 'A')} ({state})"
+            f"{fmt(amp, 2, 'A')} ({state}){extra}"
         )
 
     net = system.get("battery_net_current_a")
@@ -285,6 +287,31 @@ def _parse_time(value: str) -> datetime | None:
         return None
 
 
+def _heating_text(min_temp: float | None, current: float | None) -> str:
+    if min_temp is None:
+        return "necunoscut"
+    if min_temp >= 5.0:
+        return "inactivă (peste 5 °C)"
+    if (current or 0) > 0.3:
+        return "activă (dedus)"
+    return "posibil activă"
+
+
+def _charging_mode(dcc: dict[str, float]) -> str:
+    pv = dcc.get("pv_power_w") or 0
+    alt = dcc.get("alternator_power_w") or 0
+    cur = dcc.get("charge_current_a") or 0
+    if pv > 1 and alt > 1:
+        return "solar + alternator"
+    if pv > 1:
+        return "solar (MPPT)"
+    if alt > 1:
+        return "alternator"
+    if cur > 0.05:
+        return "priză / extern"
+    return "float / repaus"
+
+
 def batteries_text() -> str:
     data = latest_values()
     lines = ["<b>🔋 Baterii</b>", ""]
@@ -304,6 +331,25 @@ def batteries_text() -> str:
                 f"  Energie: {fmt(dev.get('remaining_charge_ah'), 1, 'Ah')} "
                 f"din {fmt(dev.get('capacity_ah'), 1, 'Ah')}"
             )
+        if dev.get("temperature_min_c") is not None:
+            lines.append(
+                f"  Temperatură: {fmt(dev.get('temperature_min_c'), 1, '°C')} … "
+                f"{fmt(dev.get('temperature_max_c'), 1, '°C')} "
+                f"(medie {fmt(dev.get('temperature_avg_c'), 1, '°C')}, "
+                f"{int(dev.get('temperature_sensor_count') or 0)} senzori)"
+            )
+        else:
+            lines.append(f"  Temperatură: {fmt(dev.get('battery_temperature_c'), 0, '°C')}")
+        lines.append(
+            f"  Încălzire: {_heating_text(dev.get('temperature_min_c'), dev.get('battery_current_a'))}"
+        )
+        if dev.get("cell_count"):
+            lines.append(
+                f"  Celule: {int(dev.get('cell_count'))} × "
+                f"{fmt(dev.get('cell_voltage_min_v'), 2, 'V')} … "
+                f"{fmt(dev.get('cell_voltage_max_v'), 2, 'V')} "
+                f"(delta {fmt(dev.get('cell_voltage_delta_v'), 2, 'V')})"
+            )
         lines.append("")
     return "\n".join(lines).rstrip()
 
@@ -314,23 +360,40 @@ def charger_text() -> str:
         return "Nu am date de la DC-DC / MPPT."
     return "\n".join(
         [
-            "<b>🔌 Încărcător DC-DC + MPPT</b>",
+            "<b>🔌 DC-DC + MPPT (RBC50D1S-G1)</b>",
             "",
             f"SOC raportat: {fmt(dcc.get('battery_soc_pct'), 0, '%')}",
             f"Tensiune baterie: {fmt(dcc.get('battery_voltage_v'), 2, 'V')}",
-            f"Curent total ieșire: {fmt(dcc.get('charge_current_a'), 2, 'A')}",
-            f"Putere totală: {fmt(dcc.get('charge_power_w'), 1, 'W')}",
+            f"Curent ieșire: {fmt(dcc.get('charge_current_a'), 2, 'A')}",
+            f"Putere ieșire: {fmt(dcc.get('charge_power_w'), 1, 'W')}",
+            f"Mod încărcare: <b>{_charging_mode(dcc)}</b>",
             "",
-            f"Panouri: {fmt(dcc.get('pv_voltage_v'), 1, 'V')} · "
-            f"{fmt(dcc.get('pv_current_a'), 2, 'A')} · {fmt(dcc.get('pv_power_w'), 0, 'W')}",
-            f"Alternator: {fmt(dcc.get('alternator_voltage_v'), 1, 'V')} · "
+            "<b>Panouri (PV)</b>",
+            f"  {fmt(dcc.get('pv_voltage_v'), 1, 'V')} · "
+            f"{fmt(dcc.get('pv_current_a'), 2, 'A')} · "
+            f"{fmt(dcc.get('pv_power_w'), 0, 'W')}",
+            "<b>Alternator</b>",
+            f"  {fmt(dcc.get('alternator_voltage_v'), 1, 'V')} · "
             f"{fmt(dcc.get('alternator_current_a'), 2, 'A')} · "
             f"{fmt(dcc.get('alternator_power_w'), 0, 'W')}",
             "",
-            f"Temperatură controller: {fmt(dcc.get('controller_temperature_c'), 0, '°C')}",
-            f"Temperatură baterie: {fmt(dcc.get('battery_temperature_c'), 0, '°C')}",
-            f"Produs azi: {fmt(dcc.get('power_generation_today_wh'), 0, 'Wh')} · "
-            f"{fmt(dcc.get('charging_amp_hours_today'), 1, 'Ah')}",
+            f"Temp controller: {fmt(dcc.get('controller_temperature_c'), 0, '°C')}",
+            f"Temp baterie: {fmt(dcc.get('battery_temperature_c'), 0, '°C')}",
+            "",
+            "<b>Azi</b>",
+            f"  Tensiune min/max: {fmt(dcc.get('battery_min_voltage_today_v'), 2, 'V')} / "
+            f"{fmt(dcc.get('battery_max_voltage_today_v'), 2, 'V')}",
+            f"  Curent maxim: {fmt(dcc.get('battery_max_current_today_a'), 2, 'A')}",
+            f"  Putere maximă: {fmt(dcc.get('max_charging_power_today_w'), 0, 'W')}",
+            f"  Ah încărcați: {fmt(dcc.get('charging_amp_hours_today'), 1, 'Ah')}",
+            f"  Energie produsă: {fmt(dcc.get('power_generation_today_wh'), 0, 'Wh')}",
+            "",
+            "<b>Total</b>",
+            f"  Energie: {fmt((dcc.get('power_generation_total_wh') or 0) / 1000, 1, 'kWh')}",
+            f"  Ah acumulați: {fmt(dcc.get('battery_ah_total_accumulated'), 0, 'Ah')}",
+            f"  Zile de funcționare: {fmt(dcc.get('total_working_days'), 0)}",
+            f"  Supra-descărcări: {fmt(dcc.get('count_battery_overdischarged'), 0)}",
+            f"  Încărcări complete: {fmt(dcc.get('count_battery_fully_charged'), 0)}",
         ]
     )
 

@@ -945,6 +945,319 @@
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"battery_power_w\")\n  |> map(fn: (r) => ({r with _field: if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\"}))"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperaturi (\u00b0C)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "min"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Controller.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Baterie.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"controller_temperature_c\" or r._field == \"temperature_min_c\"))\n  |> map(fn: (r) => ({r with _field: (if r._field == \"controller_temperature_c\" then \"Controller\" else if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\")}))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Celule baterii (V)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "volt",
+          "decimals": 3,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"cell_voltage_min_v\" or r._field == \"cell_voltage_max_v\" or r._field == \"cell_voltage_delta_v\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\") + (if r._field == \"cell_voltage_min_v\" then \" \u00b7 minim\" else if r._field == \"cell_voltage_max_v\" then \" \u00b7 maxim\" else \" \u00b7 delta\")}))"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Ah \u00eenc\u0103rca\u021bi azi",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 44
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "amp hour",
+          "decimals": 1,
+          "displayName": "Ah \u00eenc\u0103rca\u021bi azi",
+          "noValue": "\u2014"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"charging_amp_hours_today\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Wh produ\u0219i azi",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 44
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watthour",
+          "decimals": 0,
+          "displayName": "Wh produ\u0219i azi",
+          "noValue": "\u2014"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"power_generation_today_wh\")\n  |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Energie total\u0103",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 44
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "decimals": 1,
+          "displayName": "Energie total\u0103",
+          "noValue": "\u2014"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"power_generation_total_wh\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: r._value / 1000.0}))"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Zile de func\u021bionare",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "renogy-influx"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 44
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "displayName": "Zile de func\u021bionare",
+          "noValue": "\u2014"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "renogy-influx"
+          },
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and r._field == \"total_working_days\")\n  |> last()"
+        }
+      ]
     }
   ],
   "refresh": "1m",
