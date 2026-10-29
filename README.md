@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="LICENSE"><img alt="License: CC0 1.0" src="https://img.shields.io/badge/license-CC0%201.0-lightgrey.svg"></a>
+  <a href="https://www.kopimi.com/kopimi"><img alt="kopimi" src="https://img.shields.io/badge/%E2%93%80-kopimi-black"></a>
+  <a href="https://creativecommons.org/publicdomain/zero/1.0/"><img alt="Public Domain" src="https://img.shields.io/badge/status-public%20domain-blue"></a>
+</p>
+
 # Renogy Monitor — monitorizare energie pe Raspberry Pi Zero W
 
 Monitorizează un încărcător Renogy DC-DC cu MPPT, o baterie cu modul BT-2 și o
@@ -107,6 +113,16 @@ docs/               documentație
   în afara git-ului;
 - botul acceptă un singur chat, cel care trimite primul `/start`.
 
-## Licență
+## Licență și kopimi
 
-MIT. Renogy este marcă a deținătorilor ei; proiectul nu este afiliat Renogy.
+Opera este dedicată **domeniului public** sub [CC0 1.0 Universal](LICENSE)
+([rezumat](https://creativecommons.org/publicdomain/zero/1.0/)):
+
+- poți copia, modifica, publica, vinde și folosi comercial fără să ceri voie;
+- nu se cere atribuire (deși e apreciată);
+- nu se oferă nicio garanție — folosești pe răspunderea ta.
+
+Poartă și marca **kopimi Ⓚ**: făcută ca să fie copiată. Copiaz-o, fă fork,
+oglindește-o, pune-o într-un produs — asta e chiar scopul.
+
+Renogy este marcă a deținătorilor ei; proiectul nu este afiliat Renogy.
