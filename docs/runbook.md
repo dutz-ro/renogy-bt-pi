@@ -1,5 +1,11 @@
 # Runbook
 
+Ghiduri principale:
+
+- [DEPLOY.md](DEPLOY.md) — instalare cap-coadă
+- [HARDWARE.md](HARDWARE.md) — hardware, registre, limite
+- [TELEGRAM.md](TELEGRAM.md) — botul și alertele
+
 ## Recon (Phase 0)
 
 ```bash
