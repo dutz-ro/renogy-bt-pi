@@ -354,6 +354,19 @@ def batteries_text() -> str:
     return "\n".join(lines).rstrip()
 
 
+def _alternator_state(voltage: float | None, current: float | None) -> str:
+    """The DC-DC input is wired to the starter battery."""
+    if voltage is None:
+        return "necunoscut"
+    if (current or 0) > 1.0:
+        return "motor pornit — alternator încarcă"
+    if voltage >= 13.6:
+        return "motor pornit (alternator activ)"
+    if voltage >= 13.0:
+        return "tranziție (motor tocmai pornit)"
+    return "motor oprit — se vede bateria de starter"
+
+
 def charger_text() -> str:
     dcc = latest_values().get("dcc50s", {})
     if not dcc:
@@ -372,10 +385,11 @@ def charger_text() -> str:
             f"  {fmt(dcc.get('pv_voltage_v'), 1, 'V')} · "
             f"{fmt(dcc.get('pv_current_a'), 2, 'A')} · "
             f"{fmt(dcc.get('pv_power_w'), 0, 'W')}",
-            "<b>Alternator</b>",
+            "<b>Alternator / baterie starter</b>",
             f"  {fmt(dcc.get('alternator_voltage_v'), 1, 'V')} · "
             f"{fmt(dcc.get('alternator_current_a'), 2, 'A')} · "
             f"{fmt(dcc.get('alternator_power_w'), 0, 'W')}",
+            f"  → {_alternator_state(dcc.get('alternator_voltage_v'), dcc.get('alternator_current_a'))}",
             "",
             f"Temp controller: {fmt(dcc.get('controller_temperature_c'), 0, '°C')}",
             f"Temp baterie: {fmt(dcc.get('battery_temperature_c'), 0, '°C')}",
