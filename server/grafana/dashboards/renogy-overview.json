@@ -58,7 +58,7 @@
               }
             ]
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -75,7 +75,7 @@
     },
     {
       "type": "stat",
-      "title": "SOC baterie 2 (nativ\u0103)",
+      "title": "SOC baterie 2 (nativă)",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -126,7 +126,7 @@
               }
             ]
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -170,7 +170,7 @@
         "defaults": {
           "unit": "amp",
           "decimals": 2,
-          "displayName": "\u00cencarc\u0103 (+) / Descarc\u0103 (\u2212)",
+          "displayName": "Încarcă (+) / Descarcă (−)",
           "noValue": "0",
           "thresholds": {
             "mode": "absolute",
@@ -267,7 +267,7 @@
     },
     {
       "type": "bargauge",
-      "title": "De unde se \u00eencarc\u0103 acum",
+      "title": "De unde se încarcă acum",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -312,7 +312,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Priz\u0103"
+              "options": "Priză"
             },
             "properties": [
               {
@@ -363,7 +363,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Priz\u0103\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> last()\n  |> set(key: \"_field\", value: \"Priză\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -413,7 +413,7 @@
           "unit": "volt",
           "decimals": 2,
           "displayName": "Baterie",
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -430,7 +430,7 @@
     },
     {
       "type": "stat",
-      "title": "Produc\u021bie solar\u0103 acum",
+      "title": "Producție solară acum",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -475,7 +475,7 @@
     },
     {
       "type": "timeseries",
-      "title": "SOC \u00een timp",
+      "title": "SOC în timp",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -507,7 +507,7 @@
           "min": 0,
           "max": 100,
           "decimals": 1,
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -524,7 +524,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Sursa \u00eenc\u0103rc\u0103rii \u00een timp",
+      "title": "Sursa încărcării în timp",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -562,13 +562,13 @@
             "fillOpacity": 75,
             "lineWidth": 1
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "Priz\u0103"
+              "options": "Priză"
             },
             "properties": [
               {
@@ -619,7 +619,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> set(key: \"_field\", value: \"Priz\u0103\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"ac_charger_current_a\")\n  |> set(key: \"_field\", value: \"Priză\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -641,7 +641,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Curent net baterie \u0219i consum",
+      "title": "Curent net baterie și consum",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -675,13 +675,13 @@
             "fillOpacity": 10,
             "showPoints": "never"
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "\u00cenc\u0103rcare net\u0103"
+              "options": "Încărcare netă"
             },
             "properties": [
               {
@@ -717,7 +717,7 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> set(key: \"_field\", value: \"\u00cenc\u0103rcare net\u0103\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.device_id == \"system\" and r._field == \"battery_net_current_a\")\n  |> set(key: \"_field\", value: \"Încărcare netă\")\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         },
         {
           "refId": "B",
@@ -731,7 +731,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Tensiune \u0219i curent baterii",
+      "title": "Tensiune și curent baterii",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -764,7 +764,7 @@
             "fillOpacity": 0,
             "showPoints": "never"
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": [
           {
@@ -800,13 +800,13 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\") + (if r._field == \"battery_voltage_v\" then \" \u00b7 Tensiune\" else \" \u00b7 Curent\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"battery_voltage_v\" or r._field == \"battery_current_a\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else if r.device_id == \"battery_native\" then \"Baterie 2\" else \"DC-DC\") + (if r._field == \"battery_voltage_v\" then \" · Tensiune\" else \" · Curent\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Produc\u021bie solar\u0103 \u0219i alternator",
+      "title": "Producție solară și alternator",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -841,7 +841,7 @@
             "fillOpacity": 15,
             "showPoints": "never"
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": [
           {
@@ -897,7 +897,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Putere \u00eenc\u0103rcare / desc\u0103rcare",
+      "title": "Putere încărcare / descărcare",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -931,7 +931,7 @@
             "fillOpacity": 10,
             "showPoints": "never"
           },
-          "noValue": "\u2014"
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -948,7 +948,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Temperaturi (\u00b0C)",
+      "title": "Temperaturi (°C)",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -1075,13 +1075,13 @@
             "type": "influxdb",
             "uid": "renogy-influx"
           },
-          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"cell_voltage_min_v\" or r._field == \"cell_voltage_max_v\" or r._field == \"cell_voltage_delta_v\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\") + (if r._field == \"cell_voltage_min_v\" then \" \u00b7 minim\" else if r._field == \"cell_voltage_max_v\" then \" \u00b7 maxim\" else \" \u00b7 delta\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+          "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"renogy\" and (r._field == \"cell_voltage_min_v\" or r._field == \"cell_voltage_max_v\" or r._field == \"cell_voltage_delta_v\"))\n  |> map(fn: (r) => ({r with _field: (if r.device_id == \"battery_bt2\" then \"Baterie 1\" else \"Baterie 2\") + (if r._field == \"cell_voltage_min_v\" then \" · minim\" else if r._field == \"cell_voltage_max_v\" then \" · maxim\" else \" · delta\")}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },
     {
       "type": "stat",
-      "title": "Ah \u00eenc\u0103rca\u021bi azi",
+      "title": "Ah încărcați azi",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -1108,8 +1108,8 @@
         "defaults": {
           "unit": "amp hour",
           "decimals": 1,
-          "displayName": "Ah \u00eenc\u0103rca\u021bi azi",
-          "noValue": "\u2014"
+          "displayName": "Ah încărcați azi",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1126,7 +1126,7 @@
     },
     {
       "type": "stat",
-      "title": "Wh produ\u0219i azi",
+      "title": "Wh produși azi",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -1153,8 +1153,8 @@
         "defaults": {
           "unit": "watthour",
           "decimals": 0,
-          "displayName": "Wh produ\u0219i azi",
-          "noValue": "\u2014"
+          "displayName": "Wh produși azi",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1171,7 +1171,7 @@
     },
     {
       "type": "stat",
-      "title": "Energie total\u0103",
+      "title": "Energie totală",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -1198,8 +1198,8 @@
         "defaults": {
           "unit": "kwatth",
           "decimals": 1,
-          "displayName": "Energie total\u0103",
-          "noValue": "\u2014"
+          "displayName": "Energie totală",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1216,7 +1216,7 @@
     },
     {
       "type": "stat",
-      "title": "Zile de func\u021bionare",
+      "title": "Zile de funcționare",
       "datasource": {
         "type": "influxdb",
         "uid": "renogy-influx"
@@ -1243,8 +1243,8 @@
         "defaults": {
           "unit": "short",
           "decimals": 0,
-          "displayName": "Zile de func\u021bionare",
-          "noValue": "\u2014"
+          "displayName": "Zile de funcționare",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1288,7 +1288,7 @@
         "defaults": {
           "unit": "volt",
           "decimals": 1,
-          "noValue": "\u2014",
+          "noValue": "—",
           "mappings": [
             {
               "type": "range",
@@ -1307,7 +1307,7 @@
                 "from": 13,
                 "to": 13.6,
                 "result": {
-                  "text": "tranzi\u021bie",
+                  "text": "tranziție",
                   "index": 1
                 }
               }
@@ -1443,7 +1443,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "title": "Renogy \u2014 Energie",
+  "title": "Renogy — Energie",
   "uid": "renogy-overview",
   "version": 1
 }

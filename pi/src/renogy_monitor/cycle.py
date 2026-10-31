@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import subprocess
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any
@@ -60,6 +61,38 @@ def _save_last_good() -> None:
         )
     except OSError:
         pass
+
+
+def clear_phantom_connections(app: AppConfig) -> None:
+    """Drop BlueZ connections that linger from crashed sessions.
+
+    A peripheral that BlueZ still believes is connected stops advertising, so
+    nothing can reconnect until the stale link is dropped.
+    """
+    try:
+        out = subprocess.run(
+            ["bluetoothctl", "devices", "Connected"],
+            capture_output=True, text=True, timeout=10,
+        ).stdout
+    except Exception:
+        return
+    wanted = {device.mac.upper() for device in app.devices}
+    for line in out.splitlines():
+        parts = line.split(maxsplit=2)
+        if len(parts) < 2 or parts[0] != "Device":
+            continue
+        address, name = parts[1], (parts[2] if len(parts) > 2 else "")
+        stale = address.upper() in wanted or name.strip().upper().startswith("DXL")
+        if not stale:
+            continue
+        try:
+            subprocess.run(
+                ["bluetoothctl", "disconnect", address],
+                capture_output=True, text=True, timeout=10,
+            )
+            print(f"cleared phantom connection to {address}", flush=True)
+        except Exception:
+            continue
 
 
 @dataclass(frozen=True, slots=True)
@@ -204,19 +237,18 @@ def derive_system_telemetry(site_id: str, items: list[Telemetry]) -> Telemetry:
 async def collect_cycle(transport: object, app: AppConfig) -> CycleResult:
     if not _last_good:
         _load_last_good()
+    clear_phantom_connections(app)
     values: list[Telemetry] = []
     errors: list[str] = []
     for device in app.devices:
         sample: Telemetry | None = None
         last_error: Exception | None = None
-        for attempt in range(2):
-            try:
-                sample = await collect_device(transport, app, device)
-                break
-            except Exception as exc:
-                last_error = exc
-                if attempt == 0:
-                    await asyncio.sleep(2)
+        # Single attempt per cycle: hammering wedges some BLE modules into
+        # refusing connections entirely. The next cycle is 60s away anyway.
+        try:
+            sample = await collect_device(transport, app, device)
+        except Exception as exc:
+            last_error = exc
         if sample is not None:
             _last_good[device.alias] = sample
             _save_last_good()
